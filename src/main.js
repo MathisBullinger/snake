@@ -1,3 +1,5 @@
+import bot from './bots/random'
+
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
 
@@ -12,7 +14,8 @@ const y0 = (canvas.height - cells * cellSize) / 2
 
 const is = ([ax, ay], [bx, by]) => ax === bx && ay === by
 
-const snake = [[25, 25], [24,25]]
+const c = Math.floor(cells / 2)
+const snake = [[c, c], [c - 1, c]]
 let food = foodPos()
 let dir = 0
 let nextDir = dir
@@ -50,6 +53,7 @@ function renderCell(x, y) {
 let run = true
 
 function update() {
+  bot(snake, food, cells)
   dir = nextDir
     
   if (is(snake[0], food)) {
