@@ -15,12 +15,13 @@ const is = ([ax, ay], [bx, by]) => ax === bx && ay === by
 const snake = [[25, 25], [24,25]]
 let food = foodPos()
 let dir = 0
+let nextDir = dir
 
-window.addEventListener('keydown', ({key}) => {
-  if (key === 'ArrowRight') dir = 0
-  if (key === 'ArrowDown') dir = 1
-  if (key === 'ArrowLeft') dir = 2
-  if (key === 'ArrowUp') dir = 3
+window.addEventListener('keydown', ({ key }) => {
+  if (!key.startsWith('Arrow')) return 
+  const next = ['Right', 'Down', 'Left', 'Up'].findIndex(v => key.endsWith(v))
+  if (next % 2 === dir % 2) return
+  nextDir = next
 })
 
 function foodPos() {
@@ -49,6 +50,8 @@ function renderCell(x, y) {
 let run = true
 
 function update() {
+  dir = nextDir
+    
   if (is(snake[0], food)) {
     snake.push(snake[snake.length - 1])
     food = foodPos()
