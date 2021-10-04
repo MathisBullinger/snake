@@ -1,4 +1,4 @@
-import bot from './bots/random'
+import bot from './bots/aStar'
 
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d')
 canvas.width = window.innerWidth * devicePixelRatio
 canvas.height = window.innerHeight * devicePixelRatio
 
-const cells = 50
+const cells = 20
 const cellSize = Math.min(canvas.width, canvas.height) / cells
 
 const x0 = (canvas.width - cells * cellSize) / 2
@@ -38,7 +38,7 @@ function render() {
   ctx.fillRect(x0, y0, cells * cellSize, cells * cellSize)
   
   for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = i ? '#fff' : '#f88'
+    ctx.fillStyle = i ? '#fff' : '#aaa'
     renderCell(...snake[i])
   }
 
@@ -53,7 +53,6 @@ function renderCell(x, y) {
 let run = true
 
 function update() {
-  bot(snake, food, cells)
   dir = nextDir
     
   if (is(snake[0], food)) {
@@ -78,8 +77,9 @@ function step() {
   update()
   if (!run) return
   render()
+  bot(snake, food, cells, canvas, ctx)
   setTimeout(step, interval)
 } 
 
 render()
-setTimeout(step, 2000)
+setTimeout(step, 200)
