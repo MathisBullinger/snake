@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d')
 canvas.width = window.innerWidth * devicePixelRatio
 canvas.height = window.innerHeight * devicePixelRatio
 
-const cells = 20
+const cells = 75
 const cellSize = Math.min(canvas.width, canvas.height) / cells
 
 const x0 = (canvas.width - cells * cellSize) / 2
@@ -34,11 +34,12 @@ function foodPos() {
 }
 
 function render() {
-  ctx.fillStyle = '#000'
+  ctx.fillStyle = '#111'
   ctx.fillRect(x0, y0, cells * cellSize, cells * cellSize)
   
   for (let i = 0; i < snake.length; i++) {
     ctx.fillStyle = i ? '#fff' : '#aaa'
+    ctx.fillStyle = '#' + (16 - Math.min(i, 10)).toString(16).repeat(3)
     renderCell(...snake[i])
   }
 
@@ -71,15 +72,13 @@ function update() {
   if (snake[0][0] < 0 || snake[0][1] < 0 || snake[0][0] >= cells || snake[0][1] >= cells) run = false 
 }
 
-let interval = 100
-
 function step() {
   update()
   if (!run) return
   render()
   bot(snake, food, cells, canvas, ctx)
-  setTimeout(step, interval)
+  requestAnimationFrame(step)
 } 
 
 render()
-setTimeout(step, 200)
+setTimeout(step, 1000)

@@ -1,16 +1,11 @@
 export default function(snake, food, size, canvas, ctx) {
   const block = snake.map(([x,y]) => y * size + x)
-  const h = i => block.includes(i) ? Infinity : 1
+  const h = i => block.includes(i) ? Infinity : cost(food, coords(i, size)) 
+  if (block.includes(food[1] * size + food[0])) food = Array(2).fill(Math.floor(size / 2))
   const path = aStar(graphify(...snake[0], size), food[1] * size + food[0], h)
+  if (path.length < 2) return
   drawPath(canvas, ctx, size, path) 
   const head = snake[0]
-  
-  if (path.length < 2) {
-    if (head[0] === 0 || head[0] === size - 1) go(head[1] > size / 2 ? 'Down' : 'Up')
-    else if (head[1] === 0 || head[1] === size - 1) go(head[0] > size / 2 ? 'Left' : 'Right')
-    return
-  }
-
   const next = path[path.length - 2]
   go(next[0] < head[0]
     ? 'Left'
@@ -20,6 +15,10 @@ export default function(snake, food, size, canvas, ctx) {
     ? 'Up'
     : 'Down'
   )
+}
+
+function cost([ax, ay], [bx, by]) {
+  return Math.abs(ax - bx) + Math.abs(ay - by)
 }
 
 function go(dir) {
