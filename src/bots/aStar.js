@@ -1,9 +1,19 @@
+let path = []
+let pc = 0
+
 export function step(snake, food, size, canvas, ctx) {
   const block = snake.map(([x,y]) => y * size + x)
-  const h = i => block.includes(i) ? Infinity : cost(food, coords(i, size)) 
-  if (block.includes(food[1] * size + food[0])) food = Array(2).fill(Math.floor(size / 2))
-  path = aStar(graphify(...snake[0], size), food[1] * size + food[0], h)
-  if (path.length < 2) return
+
+  const h = (i, from) => {
+    if (block.includes(i) && dist(i, from) <= snake.length - block.indexOf(i))
+      return Infinity
+    return cost(food, coords(i, size))
+  }
+
+  path.pop()
+  if (path.length < 2 || !isFinite(pc))
+    [path, pc] = aStar(graphify(...snake[0], size), food[1] * size + food[0], h)
+
   const head = snake[0]
   const next = path[path.length - 2]
   go(next[0] < head[0]
@@ -20,19 +30,27 @@ function cost([ax, ay], [bx, by]) {
   return Math.abs(ax - bx) + Math.abs(ay - by)
 }
 
+function dist(i, cameFrom) {
+  let n = 0
+  if (!cameFrom) return i
+  while (cameFrom.has(i)) {
+    n++
+    i = cameFrom.get(i)
+  }
+  return n
+}
+
 function go(dir) {
   const event = new KeyboardEvent('keydown', { key: `Arrow${dir}` }) 
   window.dispatchEvent(event)
 }
 
-let path
 export function render(canvas, ctx, size) {
-  if (!path) return
   drawPath(canvas, ctx, size, path)
-  path = null
 }
 
 function drawPath(canvas, ctx, cc, path) {
+  if (!path.length) return
   const cs = Math.min(canvas.width, canvas.height) / cc
   const x0 = (canvas.width - cs * cc) / 2 
   const y0 = (canvas.height - cs * cc) / 2 
@@ -45,18 +63,15 @@ function drawPath(canvas, ctx, cc, path) {
 
 function aStar(start, goal, h) {
   const openSet = [start.i]
-
   const gScore = new Map()
   gScore.set(start.i, 0)
-
   const fScore = new Map()
   fScore.set(start.i, h(start.i))
-
   const cameFrom = new Map()
 
   while (openSet.length) {
     const current = nodeFromI(openSet[0], start.size)
-    if (current.i === goal) return reconstruct(cameFrom, current)
+    if (current.i === goal) return reconstruct(cameFrom, current, fScore)
 
     openSet.shift()
     for (const node of current.neighbours()) {
@@ -64,7 +79,7 @@ function aStar(start, goal, h) {
       if (tent < (gScore.get(node.i) ?? Infinity)) {
         cameFrom.set(node.i, current.i)
         gScore.set(node.i, tent)
-        fScore.set(node.i, gScore.get(node.i) + h(node.i)) 
+        fScore.set(node.i, gScore.get(node.i) + h(node.i, cameFrom)) 
         if (!openSet.includes(node.i)) {
           const i = openSet.findIndex(id => fScore.get(id) >= fScore.get(node.i))  
           if (i >= 0) openSet.splice(i, 0, node.i) 
@@ -77,15 +92,17 @@ function aStar(start, goal, h) {
   throw Error('no path found')
 }
 
-function reconstruct(cameFrom, current) {
+function reconstruct(cameFrom, current, fScore) {
   const size = current.size
   current = current.i
   const path = [current]
+  let cost = 0
   while (cameFrom.has(current)) {
     current = cameFrom.get(current)
     path.push(current)
+    cost += fScore.get(current)
   }
-  return path.map(i => coords(i, size))
+  return [path.map(i => coords(i, size)), cost]
 }
 
 function graphify(x, y, size) {
