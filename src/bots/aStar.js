@@ -1,10 +1,9 @@
-export default function(snake, food, size, canvas, ctx) {
+export function step(snake, food, size, canvas, ctx) {
   const block = snake.map(([x,y]) => y * size + x)
   const h = i => block.includes(i) ? Infinity : cost(food, coords(i, size)) 
   if (block.includes(food[1] * size + food[0])) food = Array(2).fill(Math.floor(size / 2))
-  const path = aStar(graphify(...snake[0], size), food[1] * size + food[0], h)
+  path = aStar(graphify(...snake[0], size), food[1] * size + food[0], h)
   if (path.length < 2) return
-  drawPath(canvas, ctx, size, path) 
   const head = snake[0]
   const next = path[path.length - 2]
   go(next[0] < head[0]
@@ -24,6 +23,13 @@ function cost([ax, ay], [bx, by]) {
 function go(dir) {
   const event = new KeyboardEvent('keydown', { key: `Arrow${dir}` }) 
   window.dispatchEvent(event)
+}
+
+let path
+export function render(canvas, ctx, size) {
+  if (!path) return
+  drawPath(canvas, ctx, size, path)
+  path = null
 }
 
 function drawPath(canvas, ctx, cc, path) {

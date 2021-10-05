@@ -1,4 +1,4 @@
-import bot from './bots/aStar'
+import * as bot from './bots/aStar'
 
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
@@ -38,13 +38,13 @@ function render() {
   ctx.fillRect(x0, y0, cells * cellSize, cells * cellSize)
   
   for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = i ? '#fff' : '#aaa'
-    ctx.fillStyle = '#' + (16 - Math.min(i, 10)).toString(16).repeat(3)
+    ctx.fillStyle = '#' + (15 - Math.min(i, 10)).toString(16).repeat(3)
     renderCell(...snake[i])
   }
 
   ctx.fillStyle = '#f00'
   renderCell(...food)
+  bot.render(canvas, ctx, cells)
 }
 
 function renderCell(x, y) {
@@ -54,8 +54,6 @@ function renderCell(x, y) {
 let run = true
 
 function update() {
-  dir = nextDir
-    
   if (is(snake[0], food)) {
     snake.push(snake[snake.length - 1])
     food = foodPos()
@@ -63,6 +61,9 @@ function update() {
 
   for (let i = snake.length - 1; i > 0; i--) snake[i] = snake[i-1]
 
+  bot.step(snake, food, cells, canvas, ctx)
+
+  dir = nextDir
   if (dir === 0) snake[0] = [snake[0][0] + 1, snake[0][1]]
   if (dir === 1) snake[0] = [snake[0][0], snake[0][1] + 1]
   if (dir === 2) snake[0] = [snake[0][0] - 1, snake[0][1]]
@@ -76,7 +77,6 @@ function step() {
   update()
   if (!run) return
   render()
-  bot(snake, food, cells, canvas, ctx)
   requestAnimationFrame(step)
 } 
 
